@@ -1,0 +1,72 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+env/
+
+# Environment variables
+.env
+
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+yarn-debug.log
+
+# Build files
+dist/
+build/
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Additional exclusions
+Dockerfile
+README.md
+evaluation_results/
+test_*
+tests/
+*.log
+*.pyc
+__pycache__/
+*.sqlite3
+.DS_Store
+*.swp
+*.swo
+
+# Dependency directories
+node_modules/
+.pnp/
+.pnp.js
+
+# Build output
+/build
+/dist
+/.next
+/out
+
+# Environment and IDE
+.env
+.env.local
+.venv/
+venv/
+.idea/
+.vscode/
+
+# Testing
+test_results/
+*.test.js
+*.test.ts
+*.spec.js
+*.spec.ts

@@ -226,11 +226,53 @@ export const AIProcessingOverlay: React.FC<React.PropsWithChildren<AIProcessingO
               )}
               
               <div className="w-full max-w-xs mb-4">
-                <Progress 
-                  value={progress} 
-                  className="h-2" 
-                />
+                {typeof progress === 'number' ? (
+                  <Progress value={progress} className="h-2" />
+                ) : (
+                  // Indeterminate progress bar
+                  <div className="relative w-full h-2 bg-muted rounded overflow-hidden">
+                    <motion.div
+                      className="absolute left-0 top-0 h-2 bg-primary"
+                      style={{ width: '40%' }}
+                      animate={{
+                        x: [ '-50%', '110%' ],
+                      }}
+                      transition={{
+                        repeat: Infinity,
+                        repeatType: 'loop',
+                        duration: 1.2,
+                        ease: 'easeInOut',
+                      }}
+                    />
+                  </div>
+                )}
               </div>
+
+              {/* Animated spinner below progress bar for extra feedback */}
+              {typeof progress !== 'number' && (
+                <motion.div
+                  className="mb-4 flex justify-center"
+                  initial={{ rotate: 0 }}
+                  animate={{ rotate: 360 }}
+                  transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
+                >
+                  <svg className="h-6 w-6 text-primary" viewBox="0 0 24 24" fill="none">
+                    <circle
+                      className="opacity-20"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-70"
+                      fill="currentColor"
+                      d="M22 12a10 10 0 01-10 10v-4a6 6 0 006-6h4z"
+                    />
+                  </svg>
+                </motion.div>
+              )}
               
               {/* Model info and time estimate */}
               <div className="flex flex-col gap-1 text-xs text-muted-foreground">

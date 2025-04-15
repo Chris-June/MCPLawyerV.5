@@ -11,6 +11,23 @@ The `AIProcessingOverlay` component provides visual feedback during AI processin
 - **Model Information**: Shows which AI model is being used for processing
 - **Responsive Design**: Works across all screen sizes and device types
 - **Smooth Animations**: Uses Framer Motion for smooth transitions
+- **Animated Progress Feedback**: Displays an indeterminate animated progress bar and spinner when progress is unknown, ensuring users always see visual feedback while waiting for the AI.
+
+## Progress Animation
+
+- When a numeric `progress` value is provided, a standard progress bar is shown.
+- When `progress` is undefined (i.e., the model is processing and no percentage is available), an animated indeterminate progress bar appears, smoothly sliding across the bar.
+- Additionally, a spinner animation is displayed below the progress bar for extra feedback, ensuring users always see a lively animation while waiting for the model response.
+
+Both animations use Tailwind CSS v4, shadcn/ui, and Framer Motion for a modern, smooth experience.
+
+### Example
+
+```tsx
+<AIProcessingOverlay isProcessing={true} message="AI is working..." />
+```
+
+This will display the animated overlay with indeterminate progress and spinner while waiting for a response.
 
 ## Implementation
 
@@ -23,7 +40,7 @@ The AIProcessingOverlay component has been integrated into the following pages:
   theme="document"
   title={generateDocumentMutation.isPending ? 'Generating Document' : 'Loading Template'}
   message={generateDocumentMutation.isPending ? 'Our AI is generating your document based on the provided variables...' : 'Loading template details...'}
-  modelName="GPT-4o-mini"
+  modelName="gpt-4.1-nano"
 />
 ```
 
@@ -34,7 +51,7 @@ The AIProcessingOverlay component has been integrated into the following pages:
   theme="document"
   title={generateDocumentMutation.isPending ? 'Generating Document' : 'Loading Templates'}
   message={generateDocumentMutation.isPending ? 'Our AI is generating your document based on the provided information...' : 'Loading document templates...'}
-  modelName="GPT-4o-mini"
+  modelName="gpt-4.1-nano"
 />
 ```
 
@@ -45,7 +62,7 @@ The AIProcessingOverlay component has been integrated into the following pages:
   theme="legal"
   title="Generating Legal Clause"
   message="Our AI is generating a custom legal clause based on your specifications..."
-  modelName="GPT-4o-mini"
+  modelName="gpt-4.1-nano"
 />
 ```
 
@@ -56,7 +73,7 @@ The AIProcessingOverlay component has been integrated into the following pages:
   theme="research"
   title="Legal Research in Progress"
   message="Our AI is analyzing your legal issue and researching relevant cases and statutes..."
-  modelName="GPT-4o-mini"
+  modelName="gpt-4.1-nano"
 />
 ```
 
@@ -67,7 +84,7 @@ The AIProcessingOverlay component has been integrated into the following pages:
   theme="document"
   title={createClauseMutation.isPending ? 'Processing Document' : 'Loading Clauses'}
   message={createClauseMutation.isPending ? 'Our AI is processing your document request...' : 'Loading clause library...'}
-  modelName="GPT-4o-mini"
+  modelName="gpt-4.1-nano"
 />
 ```
 
@@ -78,7 +95,7 @@ The AIProcessingOverlay component has been integrated into the following pages:
   theme="document"
   title={createTemplateMutation.isPending ? 'Creating Template' : deleteTemplateMutation.isPending ? 'Deleting Template' : 'Loading Templates'}
   message={createTemplateMutation.isPending ? 'Creating your new document template...' : deleteTemplateMutation.isPending ? 'Removing the selected template...' : 'Loading document templates...'}
-  modelName="GPT-4o-mini"
+  modelName="gpt-4.1-nano"
 />
 ```
 
@@ -89,7 +106,7 @@ The AIProcessingOverlay component has been integrated into the following pages:
   theme={activeTab === 'analyze' ? 'analysis' : 'document'}
   title={activeTab === 'analyze' ? 'Analyzing Contract' : 'Comparing Contracts'}
   message={activeTab === 'analyze' ? 'Our AI is analyzing your contract for risks and opportunities...' : 'Our AI is comparing the contracts to identify differences...'}
-  modelName="GPT-4o-mini"
+  modelName="gpt-4.1-nano"
 />
 ```
 
@@ -100,7 +117,7 @@ The AIProcessingOverlay component has been integrated into the following pages:
   theme="legal"
   title="Analyzing Case Outcome"
   message="Our AI is analyzing the case details to predict potential outcomes..."
-  modelName="GPT-4o-mini"
+  modelName="gpt-4.1-nano"
 />
 ```
 
@@ -127,7 +144,7 @@ return (
       theme="document"
       title="Processing Your Request"
       message="Our AI is working on your request..."
-      modelName="GPT-4o-mini"
+      modelName="gpt-4.1-nano"
     />
     
     {/* Your component content */}

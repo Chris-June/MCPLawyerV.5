@@ -125,7 +125,7 @@ export default function DocumentTemplatesPage() {
         theme="document"
         title={createTemplateMutation.isPending ? 'Creating Template' : deleteTemplateMutation.isPending ? 'Deleting Template' : 'Loading Templates'}
         message={createTemplateMutation.isPending ? 'Creating your new document template...' : deleteTemplateMutation.isPending ? 'Removing the selected template...' : 'Loading document templates...'}
-        modelName="GPT-4o-mini"
+        modelName="gpt-4.1-nano"
       />
       
       <div className="flex items-center justify-between mb-8">

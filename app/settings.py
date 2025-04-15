@@ -6,11 +6,11 @@ class ModelTaskConfig:
     """Configuration for AI model selection across different tasks."""
     
     DEFAULT_MODELS = {
-        "reasoning": "gpt-4o-mini",
-        "legal_analysis": "gpt-4o-mini",
-        "complex_reasoning": "gpt-4o",
-        "advanced_research": "gpt-4o",
-        "specialized_tasks": "gpt-4o"
+        "reasoning": "gpt-4.1-nano",
+        "legal_analysis": "gpt-4.1-nano",
+        "complex_reasoning": "gpt-4.1-nano",
+        "advanced_research": "gpt-4.1-nano",
+        "specialized_tasks": "gpt-4.1-nano"
     }
     
     @classmethod
@@ -33,7 +33,7 @@ class Settings(BaseSettings):
     openai_api_key: str
 
     # Model configuration with environment variable support
-    openai_model: str = "gpt-4o-mini"
+    openai_model: str = "gpt-4.1-nano"
     
     app_name: str = "MCP Lawyer"
     app_version: str = "1.0.0"
@@ -65,7 +65,7 @@ class Settings(BaseSettings):
         Example:
             >>> model = settings.get_model_for_task("legal_analysis")
             >>> print(model)
-            'gpt-4o-mini'
+            'gpt-4.1-nano'
         """
         try:
             # Log the model selection request

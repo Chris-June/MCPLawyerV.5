@@ -246,7 +246,7 @@ switch (clauseType) {
         theme="legal"
         title="Generating Legal Clause"
         message="Our AI is generating a custom legal clause based on your specifications..."
-        modelName="GPT-4o-mini"
+        modelName="gpt-4.1-nano"
       />
       <CardHeader>
         <CardTitle>AI Clause Generator</CardTitle>

@@ -20,6 +20,11 @@ from app.services.predictive_analysis_service import PredictiveAnalysisService
 from app.services.document_template_service import DocumentTemplateService
 
 import logging
+from fastapi import Request
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -75,20 +80,60 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Configure CORS - use either custom middleware or built-in, not both
-# Using our custom CORS middleware for more direct control
-# from app.middleware.cors_middleware import CustomCORSMiddleware
-# app.add_middleware(CustomCORSMiddleware)
-
-# Alternative: Use the built-in CORS middleware (commented out to avoid conflicts)
+# CORS Configuration with Extensive Logging and Permissive Settings
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins in development
+    allow_origins=[
+        "http://localhost:5173", 
+        "http://127.0.0.1:5173", 
+        "http://localhost:8000", 
+        "http://127.0.0.1:8000",
+        "http://localhost:3000",  # Additional common frontend port
+        "*"  # Wildcard to allow all origins during debugging
+    ],
     allow_credentials=True,
-    allow_methods=["*"],  # Allow all methods
-    allow_headers=["*"],  # Allow all headers
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # Explicit methods
+    allow_headers=[
+        "Content-Type", 
+        "Authorization", 
+        "Accept", 
+        "X-Requested-With", 
+        "Origin", 
+        "Access-Control-Request-Method", 
+        "Access-Control-Request-Headers"
+    ],
     max_age=3600  # Cache preflight response
 )
+
+# Detailed Request/Response Logging Middleware
+@app.middleware("http")
+async def log_requests_and_responses(request: Request, call_next):
+    # Log incoming request details
+    logger.debug(f"\n--- Incoming Request ---")
+    logger.debug(f"Method: {request.method}")
+    logger.debug(f"URL: {request.url}")
+    logger.debug(f"Headers: {dict(request.headers)}")
+    
+    # Log request body if possible
+    try:
+        body = await request.body()
+        logger.debug(f"Request Body: {body.decode('utf-8')}")
+    except Exception as e:
+        logger.debug(f"Could not read request body: {e}")
+    
+    # Process the request
+    try:
+        response = await call_next(request)
+    except Exception as e:
+        logger.error(f"Error processing request: {e}")
+        raise
+    
+    # Log response details
+    logger.debug(f"\n--- Outgoing Response ---")
+    logger.debug(f"Status Code: {response.status_code}")
+    logger.debug(f"Headers: {dict(response.headers)}")
+    
+    return response
 
 # Include routers
 app.include_router(healthcheck.router, tags=["Health"])

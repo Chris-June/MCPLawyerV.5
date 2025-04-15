@@ -90,7 +90,7 @@ export default function ChatPage() {
         theme="legal"
         title="Processing Your Request"
         message="Our AI is analyzing your query and preparing a response..."
-        modelName="GPT-4o-mini"
+        modelName="gpt-4.1-nano"
       />
       
       {!selectedRoleId ? (

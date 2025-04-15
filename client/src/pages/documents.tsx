@@ -158,7 +158,7 @@ export default function DocumentsPage() {
         theme="document"
         title={generateDocumentMutation.isPending ? 'Generating Document' : 'Loading Templates'}
         message={generateDocumentMutation.isPending ? 'Our AI is generating your document based on the provided information...' : 'Loading document templates...'}
-        modelName="GPT-4o-mini"
+        modelName="gpt-4.1-nano"
       />
       
       <motion.div

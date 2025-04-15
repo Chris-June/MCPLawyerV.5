@@ -133,3 +133,45 @@
 .markdown-content a {
   @apply text-primary hover:underline;
 }
+
+/* Animations and effects for Noesis Law home page */
+.animate-text-glow {
+  text-shadow: 0 0 3px #a3e635, 0 0 8px #38bdf8;
+  animation: glow 2s infinite alternate;
+}
+@keyframes glow {
+  from { filter: brightness(1); }
+  to { filter: brightness(1.06) drop-shadow(0 0 4px #38bdf8); }
+}
+.animate-gradient-text {
+  background: linear-gradient(90deg, #a3e635, #38bdf8, #f472b6);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: gradientMove 3s infinite linear;
+}
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+.animate-fade-in {
+  animation: fadeIn 1.2s ease-in;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.animate-float-slow {
+  animation: floatSlow 18s ease-in-out infinite alternate;
+}
+.animate-float-fast {
+  animation: floatFast 12s ease-in-out infinite alternate;
+}
+@keyframes floatSlow {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(40px); }
+}
+@keyframes floatFast {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-30px); }
+}

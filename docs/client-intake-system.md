@@ -19,7 +19,7 @@ The backend API supports structured data collection with advanced features:
 
 ### 2. AI-Powered Interview System
 
-An interactive interview experience that leverages GPT-4o-mini for intelligent questioning:
+An interactive interview experience that leverages gpt-4.1-nano for intelligent questioning:
 
 - **Dynamic Questioning**: Questions adapt based on previous answers to gather relevant information
 - **Sentiment Analysis**: Analyzes client responses to identify emotional concerns and priorities
@@ -103,7 +103,7 @@ POST /api/client-intake/interviews/{session_id}/complete - Complete interview an
 
 ### AI Integration
 
-The system uses GPT-4o-mini for several key functions:
+The system uses gpt-4.1-nano for several key functions:
 
 - Analyzing form submissions to generate case assessments
 - Conducting interactive interviews with dynamic questioning

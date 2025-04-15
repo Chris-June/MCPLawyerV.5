@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Contract Analysis API provides AI-powered analysis of legal contracts, helping legal professionals identify risks, extract clauses, compare different versions of contracts, and generate recommendations for improvements. It leverages GPT-4o-mini to perform deep semantic analysis of contract language and structure.
+The Contract Analysis API provides AI-powered analysis of legal contracts, helping legal professionals identify risks, extract clauses, compare different versions of contracts, and generate recommendations for improvements. It leverages gpt-4.1-nano to perform deep semantic analysis of contract language and structure.
 
 ![Contract Analysis](https://via.placeholder.com/800x400?text=Contract+Analysis+Tool)
 
@@ -84,7 +84,7 @@ GET /api/contract-analysis/templates/{template_id} - Get a specific template
 
 ## AI Integration
 
-The system uses GPT-4o-mini for several key functions:
+The system uses gpt-4.1-nano for several key functions:
 
 - Extracting and categorizing clauses from contract text
 - Analyzing clauses for risks and legal implications

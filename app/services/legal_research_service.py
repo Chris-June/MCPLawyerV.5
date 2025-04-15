@@ -46,7 +46,7 @@ class LegalResearchService:
                     except Exception as e4:
                         print(f"Third fallback model selection error: {str(e4)}")
                         # Final fallback: Use default model
-                        self.model = "gpt-4o-mini"  # Basic fallback matching user preference
+                        self.model = "gpt-4.1-nano"  # Basic fallback matching user preference
                         print(f"Final fallback model for LegalResearchService: {self.model}")
         
         self.case_law_databases = self._initialize_case_law_databases()

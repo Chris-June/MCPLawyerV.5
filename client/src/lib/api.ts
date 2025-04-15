@@ -22,7 +22,8 @@ import type {
   ContractAnalysisResult,
   ContractComparisonRequest,
   ContractComparisonResult,
-  StandardTemplate
+  StandardTemplate,
+  AIInterviewQuestion
 } from '@/types'
 
 export interface CreateMemoryRequest {
@@ -310,18 +311,49 @@ export async function calculateDeadline(request: CalculateDeadlineRequest): Prom
 
 // Create a new AI-driven interview session
 export async function createInterviewSession(practiceArea: string): Promise<AIInterviewSession> {
-  const response = await fetch(buildUrl('client-intake/interview/start'), {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ practice_area: practiceArea })
-  })
+  console.log(`DEBUG: Attempting to create interview session for practice area: ${practiceArea}`);
   
-  if (!response.ok) {
-    throw new Error('Failed to create interview session')
+  try {
+    const response = await fetch(buildUrl('interview/start'), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({ 
+        practice_area: practiceArea, 
+        case_type: null 
+      })
+    });
+    
+    console.log(`DEBUG: Received response status: ${response.status}`);
+    
+    // Log response headers
+    for (const [key, value] of response.headers.entries()) {
+      console.log(`Response Header - ${key}: ${value}`);
+    }
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`DEBUG: Error response text: ${errorText}`);
+      
+      // More detailed error handling
+      throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+    }
+    
+    const sessionData = await response.json();
+    console.log('DEBUG: Received interview session data:', sessionData);
+    return sessionData;
+  } catch (error) {
+    console.error('DEBUG: Comprehensive error in createInterviewSession:', error);
+    
+    // More granular error handling
+    if (error instanceof TypeError) {
+      console.error('Network error or fetch failed');
+    }
+    
+    throw error;
   }
-  return await response.json()
 }
 
 // Process a user's response in an interview session
@@ -334,7 +366,7 @@ export async function processInterviewResponse(
   const requestBody = { session_id: sessionId, question_id: questionId, user_response: responseText };
   console.log('DEBUG: Sending interview process request:', requestBody);
   
-  const apiResponse = await fetch(buildUrl('client-intake/interview/process'), {
+  const apiResponse = await fetch(buildUrl('interview/process'), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -365,7 +397,7 @@ export async function processInterviewResponse(
 
 // Complete an interview session and get case assessment
 export async function completeInterviewSession(sessionId: string): Promise<CaseAssessment> {
-  const response = await fetch(buildUrl('client-intake/interview/complete'), {
+  const response = await fetch(buildUrl('interview/complete'), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -375,6 +407,30 @@ export async function completeInterviewSession(sessionId: string): Promise<CaseA
   
   if (!response.ok) {
     throw new Error('Failed to complete interview session')
+  }
+  return await response.json()
+}
+
+// Generate context-aware follow-up questions
+export async function generateFollowUpQuestions(
+  sessionId: string, 
+  previousQuestions: AIInterviewQuestion[], 
+  previousResponses: string[]
+): Promise<AIInterviewQuestion[]> {
+  const response = await fetch(buildUrl('interview/follow-up'), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ 
+      session_id: sessionId, 
+      previous_questions: previousQuestions, 
+      previous_responses: previousResponses 
+    })
+  })
+  
+  if (!response.ok) {
+    throw new Error('Failed to generate follow-up questions')
   }
   return await response.json()
 }

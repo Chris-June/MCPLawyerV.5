@@ -23,25 +23,25 @@ class OpenAIService:
     
     # Model configuration mapping
     MODEL_TASK_MAP = {
-        AITask.LEGAL_RESEARCH: "gpt-4o",
-        AITask.CONTRACT_ANALYSIS: "gpt-4o-mini",
-        AITask.CASE_PREDICTION: "gpt-4o",
-        AITask.DOCUMENT_SUMMARIZATION: "gpt-4o-mini",
-        AITask.CLIENT_COMMUNICATION: "gpt-4o-mini",
-        AITask.REASONING: "gpt-4o-mini",
-        AITask.COMPLEX_REASONING: "gpt-4o",
+        AITask.LEGAL_RESEARCH: "gpt-4.1-nano",
+        AITask.CONTRACT_ANALYSIS: "gpt-4.1-nano",
+        AITask.CASE_PREDICTION: "gpt-4.1-nano",
+        AITask.DOCUMENT_SUMMARIZATION: "gpt-4.1-nano",
+        AITask.CLIENT_COMMUNICATION: "gpt-4.1-nano",
+        AITask.REASONING: "gpt-4.1-nano",
+        AITask.COMPLEX_REASONING: "gpt-4.1-nano",
         # Removed invalid model mappings
     }
     
-    # Fallback model (always GPT-4o-mini as per requirement)
-    FALLBACK_MODEL = "gpt-4o-mini"
+    # Fallback model (always gpt-4.1-nano as per requirement)
+    FALLBACK_MODEL = "gpt-4.1-nano"
     
     def __init__(self):
         self.api_key = os.getenv("OPENAI_API_KEY")
         if not self.api_key:
             raise ValueError("OPENAI_API_KEY environment variable not set")
         
-        self.default_model = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+        self.default_model = os.getenv("OPENAI_MODEL", "gpt-4.1-nano")
         self.api_base = os.getenv("OPENAI_API_BASE", "https://api.openai.com/v1")
         self.headers = {
             "Content-Type": "application/json",
@@ -100,7 +100,7 @@ class OpenAIService:
         if max_tokens:
             payload["max_tokens"] = max_tokens
         
-        # Attempt primary model, fallback to GPT-4o-mini if fails
+        # Attempt primary model, fallback to gpt-4.1-nano if fails
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.post(url, headers=self.headers, json=payload) as response:

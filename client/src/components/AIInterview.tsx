@@ -2,7 +2,13 @@ import React, { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Loader2, MessageCircle, ChevronRight, AlertCircle, CheckCircle, BarChart, FileText } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { createInterviewSession, processInterviewResponse, completeInterviewSession, fetchPracticeAreas } from '@/lib/api'
+import { 
+  createInterviewSession, 
+  processInterviewResponse, 
+  completeInterviewSession, 
+  fetchPracticeAreas,
+  generateFollowUpQuestions  
+} from '@/lib/api'
 import { AIInterviewQuestion, AIInterviewResponse, AIInterviewSession, CaseAssessment } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
@@ -36,7 +42,7 @@ export default function AIInterview({ onComplete }: AIInterviewProps) {
   const [isReviewing, setIsReviewing] = useState(false)
   
   // Fetch practice areas for dropdown
-  const { data: practiceAreas, isLoading: isLoadingPracticeAreas } = useQuery({
+  const { data: practiceAreas, isPending: isPendingPracticeAreas } = useQuery({
     queryKey: ['practiceAreas'],
     queryFn: fetchPracticeAreas,
   })
@@ -62,6 +68,30 @@ export default function AIInterview({ onComplete }: AIInterviewProps) {
     }
   })
   
+  // Mutation to generate follow-up questions
+  const generateFollowUpMutation = useMutation({
+    mutationFn: () => generateFollowUpQuestions(
+      sessionId!, 
+      conversation.map(c => c.question), 
+      conversation.map(c => c.response)
+    ),
+    onSuccess: (data) => {
+      if (data.length > 0) {
+        setCurrentQuestion(data[0])
+      } else {
+        // No more follow-up questions, prepare to complete the interview
+        setCurrentQuestion(null)
+      }
+    },
+    onError: (error: any) => {
+      toast({ 
+        variant: "destructive", 
+        title: "Follow-up Question Error", 
+        description: error.message || "Unable to generate follow-up questions."
+      })
+    }
+  })
+
   // Mutation to process response
   const processResponseMutation = useMutation({
     mutationFn: ({ sessionId, questionId, responseText }: 
@@ -76,19 +106,19 @@ export default function AIInterview({ onComplete }: AIInterviewProps) {
       // Clear response input
       setResponse('')
 
-      // Update with new questions if available
-      if (data.nextQuestions && data.nextQuestions.length > 0) {
-        setCurrentQuestion(data.nextQuestions[0])
+      // If no more questions from the initial set, try to generate follow-ups
+      if (!data.nextQuestions || data.nextQuestions.length === 0) {
+        generateFollowUpMutation.mutate()
       } else {
-        // No more questions, show completion option
-        setCurrentQuestion(null)
+        // Update with new questions if available
+        setCurrentQuestion(data.nextQuestions[0])
       }
     },
     onError: (error: any) => {
       toast({ 
         variant: "destructive", 
         title: "Error", 
-        description: error.message || "Failed to process your response." 
+        description: error.message || "Unable to process interview response."
       })
     }
   })
@@ -185,7 +215,7 @@ export default function AIInterview({ onComplete }: AIInterviewProps) {
               <SelectValue placeholder="Select practice area" />
             </SelectTrigger>
             <SelectContent>
-              {isLoadingPracticeAreas ? (
+              {isPendingPracticeAreas ? (
                 <div className="flex items-center justify-center p-2">
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
                   <span>Loading...</span>
@@ -231,132 +261,119 @@ export default function AIInterview({ onComplete }: AIInterviewProps) {
   )
   
   // Render the active interview
-  const renderActiveInterview = () => (
-    <AnimatePresence mode="wait">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -20 }}
-        transition={{ duration: 0.3 }}
-      >
-        <Card className="mb-6">
-          <CardHeader className="pb-4">
-            <div className="flex justify-between items-center">
-              <CardTitle>Client Interview</CardTitle>
-              <Badge variant={isReviewing ? "outline" : "secondary"}>
-                {isReviewing ? "Review Mode" : "Active Interview"}
-              </Badge>
-            </div>
+  const renderActiveInterview = () => {
+    // If no current question, but we have conversation history, show completion option
+    if (!currentQuestion && conversation.length > 0) {
+      return (
+        <Card>
+          <CardHeader>
+            <CardTitle>Interview Progress</CardTitle>
             <CardDescription>
-              {practiceArea && <span>Practice Area: {practiceAreas?.find(a => a.id === practiceArea)?.name}</span>}
-              {caseType && <span className="ml-2">| Case Type: {caseType}</span>}
+              We've gathered significant information about your case. Would you like to complete the interview?
             </CardDescription>
           </CardHeader>
-          
-          <CardContent className="pb-2">
-            {isReviewing ? (
-              // Review conversation history
-              <div className="space-y-4 max-h-[450px] overflow-y-auto p-2">
-                {conversation.map((item, index) => (
-                  <div key={index} className="space-y-2">
-                    <div className="bg-muted p-3 rounded-lg">
-                      <p className="font-semibold text-sm text-muted-foreground">Question:</p>
-                      <p>{item.question.question}</p>
-                      {item.question.intent && (
-                        <p className="text-xs text-muted-foreground mt-1 italic">
-                          Intent: {item.question.intent}
-                        </p>
-                      )}
-                    </div>
-                    
-                    <div className="bg-accent p-3 rounded-lg ml-4">
-                      <p className="font-semibold text-sm text-muted-foreground">Your Response:</p>
-                      <p>{item.response}</p>
-                    </div>
+          <CardContent>
+            <div className="space-y-4">
+              <Button 
+                onClick={handleCompleteInterview}
+                disabled={generateFollowUpMutation.isPending}
+              >
+                {generateFollowUpMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Generating Final Questions...
+                  </>
+                ) : (
+                  "Complete Interview"
+                )}
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => generateFollowUpMutation.mutate()}
+                disabled={generateFollowUpMutation.isPending}
+              >
+                {generateFollowUpMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Generating More Questions...
+                  </>
+                ) : (
+                  "Generate More Questions"
+                )}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )
+    }
+
+    // Render the current question
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>AI Interview</CardTitle>
+          <CardDescription>
+            Answer the following question to help us understand your case better.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <motion.div 
+            key={currentQuestion?.id || 'no-question'}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className="space-y-4">
+              <div className="bg-muted p-4 rounded-lg">
+                <p className="text-lg font-medium">{currentQuestion?.text}</p>
+              </div>
+              
+              <Textarea 
+                placeholder="Type your response here..."
+                value={response}
+                onChange={(e) => setResponse(e.target.value)}
+                onKeyDown={handleKeyDown}
+                disabled={processResponseMutation.isPending}
+                rows={4}
+              />
+              
+              <div className="flex justify-end space-x-2">
+                <Button 
+                  onClick={() => handleSubmitResponse()}
+                  disabled={!response || processResponseMutation.isPending}
+                >
+                  {processResponseMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Submitting...
+                    </>
+                  ) : (
+                    "Submit Response"
+                  )}
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+        </CardContent>
+        
+        {conversation.length > 0 && (
+          <CardFooter>
+            <div className="w-full">
+              <h3 className="text-lg font-semibold mb-2">Previous Responses</h3>
+              <div className="space-y-2">
+                {conversation.map((entry, index) => (
+                  <div key={index} className="bg-muted/50 p-3 rounded-lg">
+                    <p className="font-medium text-sm mb-1">{entry.question.text}</p>
+                    <p className="text-muted-foreground">{entry.response}</p>
                   </div>
                 ))}
               </div>
-            ) : (
-              // Active interview question
-              <div className="space-y-4">
-                {currentQuestion ? (
-                  <div className="bg-muted p-4 rounded-lg">
-                    <h3 className="text-lg font-semibold">{currentQuestion.question}</h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {currentQuestion.intent}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="bg-muted p-4 rounded-lg">
-                    <h3 className="text-lg font-semibold">Interview Complete</h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      All questions have been answered. You can now complete the interview to generate a case assessment.
-                    </p>
-                  </div>
-                )}
-                
-                {currentQuestion && (
-                  <div className="space-y-2">
-                    <Textarea
-                      value={response}
-                      onChange={(e) => setResponse(e.target.value)}
-                      onKeyDown={handleKeyDown}
-                      placeholder="Type your response here..."
-                      className="min-h-[100px]"
-                    />
-                    <div className="flex justify-end">
-                      <Button 
-                        onClick={handleSubmitResponse}
-                        disabled={!response.trim() || processResponseMutation.isPending}
-                      >
-                        {processResponseMutation.isPending ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Processing...
-                          </>
-                        ) : (
-                          <>
-                            Submit Response
-                            <ChevronRight className="ml-2 h-4 w-4" />
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </CardContent>
-          
-          <CardFooter className="pt-2 flex justify-between">
-            <Button variant="outline" onClick={toggleReview}>
-              {isReviewing ? "Continue Interview" : "Review Conversation"}
-            </Button>
-            
-            {!currentQuestion && !interviewComplete && (
-              <Button 
-                onClick={handleCompleteInterview}
-                disabled={completeInterviewMutation.isPending}
-                variant="default"
-              >
-                {completeInterviewMutation.isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Generating Assessment...
-                  </>
-                ) : (
-                  <>
-                    Complete & Generate Assessment
-                    <FileText className="ml-2 h-4 w-4" />
-                  </>
-                )}
-              </Button>
-            )}
+            </div>
           </CardFooter>
-        </Card>
-      </motion.div>
-    </AnimatePresence>
-  )
+        )}
+      </Card>
+    )
+  }
   
   // Render the case assessment
   const renderCaseAssessment = () => {

@@ -177,7 +177,7 @@ export default function ContractAnalysisPage() {
         theme={activeTab === 'analyze' ? 'analysis' : 'document'}
         title={activeTab === 'analyze' ? 'Analyzing Contract' : 'Comparing Contracts'}
         message={activeTab === 'analyze' ? 'Our AI is analyzing your contract for risks and opportunities...' : 'Our AI is comparing the contracts to identify differences...'}
-        modelName="GPT-4o-mini"
+        modelName="gpt-4.1-nano"
       />
       
       <div className="flex flex-col space-y-2">

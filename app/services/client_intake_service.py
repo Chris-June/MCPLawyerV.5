@@ -3,6 +3,7 @@ from datetime import datetime
 import json
 import uuid
 import os
+import logging
 from pathlib import Path
 from fastapi import HTTPException
 from ..models.client_intake_models import (
@@ -16,6 +17,8 @@ from ..models.client_intake_models import (
 from ..services.openai_service import OpenAIService
 from app.config import Settings, ModelTaskConfig, OpenAIModel
 import time
+
+logger = logging.getLogger(__name__)
 
 class ClientIntakeService:
     def __init__(self, 
@@ -108,46 +111,22 @@ class ClientIntakeService:
         """
         # Validate OpenAI Service capabilities
         try:
-            # Check for required method signatures
-            required_openai_methods = [
-                'generate_completion', 
-                'generate_chat_completion'
+            # List of required methods to validate
+            required_methods = [
+                'generate_completion',  
+                'create_system_message',
+                'create_user_message',
+                'select_model'
             ]
             
-            # Validate method availability and signature
-            for method_name in required_openai_methods:
-                method = getattr(openai_service, method_name, None)
+            # Comprehensive method validation
+            for method_name in required_methods:
+                if not hasattr(openai_service, method_name):
+                    raise TypeError(f"Invalid OpenAI Service: Missing required method: {method_name}")
                 
-                if method is None:
-                    raise ValueError(f"Missing required method: {method_name}")
-                
-                # Inspect method signature
-                try:
-                    import inspect
-                    signature = inspect.signature(method)
-                    
-                    # Basic signature validation
-                    expected_params = {
-                        'generate_completion': ['prompt', 'model'],
-                        'generate_chat_completion': ['messages', 'model']
-                    }
-                    
-                    method_params = list(signature.parameters.keys())
-                    expected = expected_params.get(method_name, [])
-                    
-                    # Check if critical parameters exist
-                    missing_params = [
-                        param for param in expected 
-                        if param not in method_params
-                    ]
-                    
-                    if missing_params:
-                        raise ValueError(
-                            f"Method {method_name} missing critical parameters: {missing_params}"
-                        )
-                
-                except Exception as sig_err:
-                    print(f"Warning: Could not fully validate {method_name} signature: {sig_err}")
+                method = getattr(openai_service, method_name)
+                if not callable(method):
+                    raise TypeError(f"Invalid OpenAI Service: {method_name} is not a callable method")
         
         except Exception as e:
             raise TypeError(f"Invalid OpenAI Service: {e}")
@@ -591,56 +570,81 @@ Return the response as a structured JSON with the following keys:
 
     async def create_interview_session(self, practice_area: str, case_type: Optional[str] = None) -> AIInterviewSession:
         """Create a new AI interview session with dynamically generated initial questions"""
-        # Log the selected model for this session
-        print(f"\n--- Client Interview Session Model: {self.model} ---")
+        # Extensive logging and error handling
+        logger.info(f"Attempting to create interview session")
+        logger.info(f"Practice Area: {practice_area}")
+        logger.info(f"Case Type: {case_type}")
         
         try:
-            # Generate unique session ID
-            session_id = f"session_{uuid.uuid4().hex}"
+            # Validate input parameters with more robust checks
+            if not practice_area or not isinstance(practice_area, str):
+                logger.error("Invalid practice area: Must be a non-empty string")
+                raise ValueError("Practice area must be a non-empty string")
             
-            # Create initial interview session
-            session = AIInterviewSession(
-                sessionId=session_id,
-                practiceArea=practice_area,
-                caseType=case_type,
-                createdAt=datetime.now().isoformat(),
-                lastUpdatedAt=datetime.now().isoformat(),
-                isComplete=False,
-                questions=[],
-                responses=[]
-            )
+            # Validate case type if provided
+            if case_type is not None and not isinstance(case_type, str):
+                logger.error("Invalid case type: Must be a string or None")
+                raise ValueError("Case type must be a string or None")
             
-            # Generate initial questions using the selected model
-            initial_questions = await self._get_initial_questions(practice_area, case_type)
+            # Generate unique session ID with additional entropy
+            session_id = f"session_{uuid.uuid4().hex}_{int(datetime.now().timestamp())}"
+            logger.info(f"Generated Session ID: {session_id}")
+            
+            # Create initial interview session with comprehensive validation
+            try:
+                session = AIInterviewSession(
+                    sessionId=session_id,
+                    practiceArea=practice_area,
+                    caseType=case_type,
+                    createdAt=datetime.now().isoformat(),
+                    lastUpdatedAt=datetime.now().isoformat(),
+                    isComplete=False,
+                    questions=[],
+                    responses=[]
+                )
+            except Exception as model_err:
+                logger.error(f"Failed to create AIInterviewSession model: {model_err}")
+                raise ValueError(f"Could not create interview session model: {model_err}")
+            
+            # Generate initial questions with error handling
+            try:
+                initial_questions = await self._get_initial_questions(practice_area, case_type)
+                logger.info(f"Generated {len(initial_questions)} initial questions")
+            except Exception as question_err:
+                logger.error(f"Failed to generate initial questions: {question_err}")
+                raise RuntimeError(f"Could not generate initial questions: {question_err}")
             
             # Add initial questions to the session
             session.questions.extend(initial_questions)
             
-            # Prepare session directory if not exists
-            os.makedirs(self.interviews_directory, exist_ok=True)
+            # Prepare session directory with error handling
+            try:
+                os.makedirs(self.interviews_directory, exist_ok=True)
+            except OSError as dir_err:
+                logger.error(f"Failed to create interviews directory: {dir_err}")
+                raise RuntimeError(f"Could not create interviews directory: {dir_err}")
             
-            # Save session to file
-            session_path = self.interviews_directory / f"{session_id}.json"
-            with open(session_path, 'w') as f:
-                f.write(session.json())
+            # Save session to file with comprehensive error handling
+            try:
+                session_path = self.interviews_directory / f"{session_id}.json"
+                with open(session_path, 'w') as f:
+                    f.write(session.json())
+                logger.info(f"Saved session to {session_path}")
+            except IOError as file_err:
+                logger.error(f"Failed to save interview session file: {file_err}")
+                raise RuntimeError(f"Could not save interview session: {file_err}")
             
-            return {
-                "sessionId": session_id,
-                "practiceArea": practice_area,
-                "caseType": case_type,
-                "initialQuestions": [q.dict() for q in initial_questions],
-                "model_used": self.model
-            }
+            return session
         
         except Exception as e:
-            # Comprehensive error logging
-            print(f"Error creating interview session: {e}")
+            # Final comprehensive error logging
+            logger.error(f"Unhandled error in create_interview_session: {e}")
             import traceback
             traceback.print_exc()
             
             raise HTTPException(
                 status_code=500, 
-                detail=f"Failed to create interview session: {str(e)}"
+                detail=f"Comprehensive failure in creating interview session: {str(e)}"
             )
 
     async def _get_initial_questions(self, practice_area: str, case_type: Optional[str] = None) -> List[AIInterviewQuestion]:
@@ -815,11 +819,7 @@ Generate 2-4 follow-up questions that will help gather more detailed information
             with open(session_path, 'w') as f:
                 f.write(session.json())
             
-            return {
-                "sessionId": session_id,
-                "newQuestions": follow_up_questions,
-                "model_used": self.model
-            }
+            return follow_up_questions
         
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to process interview response: {str(e)}")
@@ -932,13 +932,8 @@ Format the response as a structured JSON object with the following schema:
             with open(session_path, 'w') as f:
                 f.write(session.json())
             
-            return {
-                "sessionId": session.sessionId,
-                "summary": session.summary,
-                "caseAssessment": analysis,
-                "model_used": self.model
-            }
-            
+            return session
+        
         except json.JSONDecodeError as json_err:
             # Log detailed JSON parsing error
             print(f"JSON Parsing Error: {json_err}")

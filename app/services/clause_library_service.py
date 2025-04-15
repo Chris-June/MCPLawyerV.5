@@ -40,7 +40,7 @@ class ClauseLibraryService:
                 except Exception as e3:
                     print(f"Second fallback model selection error: {str(e3)}")
                     # Final fallback: Use default model
-                    self.model = "gpt-3.5-turbo"  # Basic fallback
+                    self.model = "gpt-4.1-nano"  # Basic fallback
                     print(f"Final fallback model for ClauseLibraryService: {self.model}")
         
         # Initialize clause library

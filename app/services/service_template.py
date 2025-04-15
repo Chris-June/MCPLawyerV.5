@@ -58,7 +58,7 @@ class ServiceTemplate:
                 except Exception as e3:
                     print(f"Error selecting second fallback model: {str(e3)}")
                     # Final fallback: Use default model
-                    self.model = "gpt-4o-mini"  # Basic fallback matching user preference
+                    self.model = "gpt-4.1-nano"  # Basic fallback matching user preference
                     print(f"Final fallback model selected: {self.model}")
         
         # Log initialization

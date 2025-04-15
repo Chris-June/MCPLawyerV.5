@@ -149,7 +149,7 @@ const DocumentAutomationPage: React.FC = () => {
           theme="document"
           title={createClauseMutation.isPending ? 'Processing Document' : 'Loading Clauses'}
           message={createClauseMutation.isPending ? 'Our AI is processing your document request...' : 'Loading clause library...'}
-          modelName="GPT-4o-mini"
+          modelName="gpt-4.1-nano"
         />
         
         <div className="flex justify-between items-center mb-6">

@@ -1505,7 +1505,7 @@ Format the response as a structured JSON object:
         try:
             # Check model compatibility
             compatible_models = [
-                'gpt-4o-mini', 
+                'gpt-4.1-nano', 
                 'gpt-4o', 
                 'gpt-4-turbo'
             ]
@@ -1558,7 +1558,7 @@ Format the response as a structured JSON object:
             print(f"App Name: {env_config.get('app_name', 'MCP Lawyer')}")
             print(f"App Version: {env_config.get('app_version', '1.0.0')}")
             print(f"API Prefix: {env_config.get('api_prefix', '/api/v1')}")
-            print(f"OpenAI Model: {env_config.get('openai_model', 'gpt-4o-mini')}")
+            print(f"OpenAI Model: {env_config.get('openai_model', 'gpt-4.1-nano')}")
         
         except Exception as e:
             print(f"Settings Configuration Validation Warning: {e}")

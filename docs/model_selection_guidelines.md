@@ -25,8 +25,8 @@ This document outlines the standardized approach for model selection across all 
 
 | Task Category | Model | Use Case |
 |---------------|-------|----------|
-| `reasoning` | `gpt-4o-mini` | General-purpose reasoning tasks (default) |
-| `legal_analysis` | `gpt-4o-mini` | Legal-specific analysis tasks |
+| `reasoning` | `gpt-4.1-nano` | General-purpose reasoning tasks (default) |
+| `legal_analysis` | `gpt-4.1-nano` | Legal-specific analysis tasks |
 | `complex_reasoning` | `gpt-4o` | Complex reasoning requiring more advanced capabilities |
 | `advanced_research` | `gpt-4.5` | Research-intensive tasks requiring deep analysis |
 | `specialized_tasks` | `gpt-o1` | Highly specialized operations requiring the most capable model |

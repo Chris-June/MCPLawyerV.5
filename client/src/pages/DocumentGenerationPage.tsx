@@ -143,7 +143,7 @@ export default function DocumentGenerationPage() {
         theme="document"
         title={generateDocumentMutation.isPending ? 'Generating Document' : 'Loading Template'}
         message={generateDocumentMutation.isPending ? 'Our AI is generating your document based on the provided variables...' : 'Loading template details...'}
-        modelName="GPT-4o-mini"
+        modelName="gpt-4.1-nano"
       />
       
       <div className="flex items-center mb-6">

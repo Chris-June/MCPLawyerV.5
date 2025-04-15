@@ -36,7 +36,7 @@ class RoleService:
             except Exception as e2:
                 print(f"First fallback model selection error: {str(e2)}")
                 # Second fallback: Use default model
-                self.model = "gpt-4o-mini"  # Basic fallback matching user preference
+                self.model = "gpt-4.1-nano"  # Basic fallback matching user preference
                 print(f"Final fallback model for RoleService: {self.model}")
         
         # In-memory storage for roles

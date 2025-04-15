@@ -7,7 +7,7 @@ class OpenAIModel(str, Enum):
     """
     Enum for supported OpenAI models with their specific use cases
     """
-    GPT_4O_MINI = "gpt-4o-mini"
+    GPT_4_1_NANO = "gpt-4.1-nano"
     GPT_4O = "gpt-4o"
 
 class ModelTaskConfig:
@@ -28,11 +28,11 @@ class ModelTaskConfig:
     - compact_reasoning: Compact reasoning model with good performance-to-cost ratio
     """
     # Default model for fallback scenarios
-    DEFAULT_MODEL = OpenAIModel.GPT_4O_MINI
+    DEFAULT_MODEL = OpenAIModel.GPT_4_1_NANO
     
     # Task-specific model mapping
-    REASONING = OpenAIModel.GPT_4O_MINI
-    LEGAL_ANALYSIS = OpenAIModel.GPT_4O_MINI
+    REASONING = OpenAIModel.GPT_4_1_NANO
+    LEGAL_ANALYSIS = OpenAIModel.GPT_4_1_NANO
     COMPLEX_REASONING = OpenAIModel.GPT_4O
     ADVANCED_RESEARCH = OpenAIModel.GPT_4O
     SPECIALIZED_TASKS = OpenAIModel.GPT_4O
@@ -49,12 +49,12 @@ class ModelTaskConfig:
             List[str]: List of compatible model names
         """
         model_mappings = {
-            'reasoning': [OpenAIModel.GPT_4O_MINI, OpenAIModel.GPT_4O],
-            'legal_analysis': [OpenAIModel.GPT_4O_MINI, OpenAIModel.GPT_4O],
-            'complex_reasoning': [OpenAIModel.GPT_4O, OpenAIModel.GPT_4O_MINI],
-            'advanced_research': [OpenAIModel.GPT_4O, OpenAIModel.GPT_4O_MINI],
-            'specialized_tasks': [OpenAIModel.GPT_4O, OpenAIModel.GPT_4O_MINI],
-            'default': [OpenAIModel.GPT_4O_MINI]
+            'reasoning': [OpenAIModel.GPT_4_1_NANO, OpenAIModel.GPT_4O],
+            'legal_analysis': [OpenAIModel.GPT_4_1_NANO, OpenAIModel.GPT_4O],
+            'complex_reasoning': [OpenAIModel.GPT_4O, OpenAIModel.GPT_4_1_NANO],
+            'advanced_research': [OpenAIModel.GPT_4O, OpenAIModel.GPT_4_1_NANO],
+            'specialized_tasks': [OpenAIModel.GPT_4O, OpenAIModel.GPT_4_1_NANO],
+            'default': [OpenAIModel.GPT_4_1_NANO]
         }
         
         return model_mappings.get(task_category, model_mappings['default'])
@@ -67,7 +67,7 @@ class Settings(BaseSettings):
     openai_api_key: str = os.getenv("OPENAI_API_KEY", "")
     
     # Default model configuration
-    default_model: OpenAIModel = OpenAIModel.GPT_4O_MINI
+    default_model: OpenAIModel = OpenAIModel.GPT_4_1_NANO
     
     # Task-specific model configurations
     model_configs: Dict[str, OpenAIModel] = {

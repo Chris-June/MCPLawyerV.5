@@ -315,7 +315,7 @@ const PredictiveOutcomeAnalysis: React.FC = () => {
         theme="legal"
         title="Analyzing Case Outcome"
         message="Our AI is analyzing your case details and predicting the potential outcome..."
-        modelName="GPT-4o-mini"
+        modelName="gpt-4.1-nano"
       />
       
       <div className="flex flex-col space-y-2">

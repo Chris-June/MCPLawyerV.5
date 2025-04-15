@@ -26,7 +26,7 @@
 - ✅ Basic FastAPI server setup
 - ✅ Role management endpoints (CRUD operations)
 - ✅ Memory storage and retrieval
-- ✅ OpenAI integration with GPT-4o-mini model
+- ✅ OpenAI integration with gpt-4.1-nano model
 - ✅ System prompt generation with role instructions and tone
 - ✅ Dockerfile for containerized deployment
 - ✅ AI Processing Overlay (2025-04-04)
@@ -164,7 +164,7 @@
 - [ ] Integrate Tailwind CSS v4
 - [ ] Set up shadcn/ui components
 - [ ] Add Framer Motion animations
-- [ ] Configure OpenAI API with GPT-4o-mini
+- [ ] Configure OpenAI API with gpt-4.1-nano
 - [ ] Develop modular React components
 - [ ] Create comprehensive test suite
 - [ ] Set up CI/CD pipeline

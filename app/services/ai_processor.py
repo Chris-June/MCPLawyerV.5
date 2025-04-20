@@ -85,7 +85,7 @@ class AIProcessor:
                     {"role": "user", "content": user_prompt}
                 ],
                 "temperature": kwargs.get('temperature', 0.7),
-                "max_tokens": kwargs.get('max_tokens', 1500),
+                "max_tokens": kwargs.get('max_tokens', 3000),
                 "top_p": kwargs.get('top_p', 1.0),
                 "frequency_penalty": kwargs.get('frequency_penalty', 0.0),
                 "presence_penalty": kwargs.get('presence_penalty', 0.0)
@@ -194,7 +194,7 @@ Disclaimer: This is a fallback response. Please consult with a legal professiona
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.7,
-                max_tokens=1500,
+                max_tokens=6000,
                 top_p=1.0,
                 frequency_penalty=0.0,
                 presence_penalty=0.0

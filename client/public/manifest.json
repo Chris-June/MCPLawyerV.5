@@ -1,0 +1,9 @@
+{
+  "name": "MCP Lawyer",
+  "short_name": "MCP",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "description": "AI-powered Legal Practice Management System",
+  "icons": []
+}

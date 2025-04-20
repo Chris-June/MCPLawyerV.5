@@ -6,6 +6,7 @@
     "start:client": "cd client && npm run dev",
     "start:python": "source venv/bin/activate && python server.py",
     "start:dev": "concurrently \"npm run start:python\" \"npm run start:client\"",
+    "dev": "npm run start:dev",
     "test": "pytest",
     "lint": "flake8 app && cd client && npm run lint",
     "format": "black app && cd client && npm run format"

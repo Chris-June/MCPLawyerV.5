@@ -270,7 +270,7 @@ class ContractAnalysisService:
                 user_prompt, 
                 model=self.model,
                 task_category="legal_analysis",
-                max_tokens=2000  # Increase token limit for complex contracts
+                max_tokens=6000  # Increase token limit for complex contracts
             )
             
             # Clean markdown formatting if needed

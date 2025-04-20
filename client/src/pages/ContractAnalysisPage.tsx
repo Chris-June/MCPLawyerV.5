@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import { AlertCircle, CheckCircle, FileText, GitCompare, Info } from 'lucide-react'
+import {FileText, GitCompare, Info } from 'lucide-react'
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
 import { AIProcessingOverlay } from '@/components/ui/ai-processing-overlay'
 import {
@@ -50,17 +50,38 @@ const jurisdictions = [
 ]
 
 const contractTypes = [
+  { value: 'agency', label: 'Agency Agreement' },
+  { value: 'asset_purchase', label: 'Asset Purchase Agreement' },
+  { value: 'bill_of_sale', label: 'Bill of Sale' },
+  { value: 'brokerage', label: 'Brokerage Agreement' },
+  { value: 'consulting', label: 'Consulting Agreement' },
+  { value: 'construction', label: 'Construction Agreement' },
+  { value: 'distribution', label: 'Distribution Agreement' },
   { value: 'employment', label: 'Employment Contract' },
-  { value: 'service', label: 'Service Agreement' },
-  { value: 'nda', label: 'Non-Disclosure Agreement' },
+  { value: 'franchise', label: 'Franchise Agreement' },
+  { value: 'joint_venture', label: 'Joint Venture Agreement' },
   { value: 'lease', label: 'Lease Agreement' },
-  { value: 'purchase', label: 'Purchase Agreement' },
   { value: 'licensing', label: 'Licensing Agreement' },
-  { value: 'partnership', label: 'Partnership Agreement' },
   { value: 'loan', label: 'Loan Agreement' },
-  { value: 'settlement', label: 'Settlement Agreement' },
+  { value: 'maintenance', label: 'Maintenance Agreement' },
+  { value: 'manufacturing', label: 'Manufacturing Agreement' },
+  { value: 'moa', label: 'Memorandum of Agreement' },
+  { value: 'mou', label: 'Memorandum of Understanding' },
+  { value: 'non_compete', label: 'Non-Compete Agreement' },
+  { value: 'nda', label: 'Non-Disclosure Agreement' },
+  { value: 'operating', label: 'Operating Agreement' },
   { value: 'other', label: 'Other Contract Type' },
-]
+  { value: 'partnership', label: 'Partnership Agreement' },
+  { value: 'purchase', label: 'Purchase Agreement' },
+  { value: 'research_collaboration', label: 'Research Collaboration Agreement' },
+  { value: 'sales', label: 'Sales Agreement' },
+  { value: 'service', label: 'Service Agreement' },
+  { value: 'settlement', label: 'Settlement Agreement' },
+  { value: 'software_license', label: 'Software License Agreement' },
+  { value: 'supply', label: 'Supply Agreement' },
+  { value: 'terms_of_service', label: 'Terms of Service' },
+  { value: 'warranty', label: 'Warranty Agreement' },
+];
 
 export default function ContractAnalysisPage() {
   const { toast } = useToast()

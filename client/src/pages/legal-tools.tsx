@@ -3,7 +3,7 @@ import { useMutation } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { 
   Calculator, FileQuestion, Loader2, Calendar, Copy, Check, Download,
-  Search, BookOpen, Quote, FileDiff, DollarSign, FileText
+  Search, BookOpen, Quote, FileDiff, DollarSign, Sparkles, FileText
 } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 
@@ -42,24 +42,70 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/components/ui/use-toast'
+import { AIProcessingOverlay } from '@/components/ui/ai-processing-overlay'
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu"
 
 const jurisdictions = [
-  { value: 'ontario', label: 'Ontario' },
-  { value: 'british_columbia', label: 'British Columbia' },
   { value: 'alberta', label: 'Alberta' },
-  { value: 'quebec', label: 'Quebec' },
+  { value: 'british_columbia', label: 'British Columbia' },
   { value: 'federal', label: 'Federal' },
-]
+  { value: 'manitoba', label: 'Manitoba' },
+  { value: 'new_brunswick', label: 'New Brunswick' },
+  { value: 'newfoundland_and_labrador', label: 'Newfoundland and Labrador' },
+  { value: 'northwest_territories', label: 'Northwest Territories' },
+  { value: 'nova_scotia', label: 'Nova Scotia' },
+  { value: 'nunavut', label: 'Nunavut' },
+  { value: 'ontario', label: 'Ontario' },
+  { value: 'prince_edward_island', label: 'Prince Edward Island' },
+  { value: 'quebec', label: 'Quebec' },
+  { value: 'saskatchewan', label: 'Saskatchewan' },
+  { value: 'yukon', label: 'Yukon' },
+];
 
 const practiceAreas = [
-  { value: 'general', label: 'General' },
-  { value: 'family', label: 'Family Law' },
-  { value: 'real_estate', label: 'Real Estate' },
-  { value: 'corporate', label: 'Corporate' },
-  { value: 'litigation', label: 'Litigation' },
-  { value: 'estates', label: 'Wills & Estates' },
+  { value: 'administrative', label: 'Administrative Law' },
+  { value: 'admiralty', label: 'Admiralty Law' },
+  { value: 'alternative_dispute_resolution', label: 'Alternative Dispute Resolution' },
+  { value: 'antitrust', label: 'Antitrust' },
+  { value: 'appellate', label: 'Appellate Practice' },
+  { value: 'banking_and_finance', label: 'Banking and Finance' },
+  { value: 'bankruptcy', label: 'Bankruptcy' },
+  { value: 'business_law', label: 'Business Law' },
   { value: 'civil', label: 'Civil Law' },
-]
+  { value: 'civil_rights', label: 'Civil Rights' },
+  { value: 'commercial', label: 'Commercial Law' },
+  { value: 'construction', label: 'Construction Law' },
+  { value: 'consumer_protection', label: 'Consumer Protection' },
+  { value: 'constitutional', label: 'Constitutional Law' },
+  { value: 'corporate', label: 'Corporate Law' },
+  { value: 'employment', label: 'Employment Law' },
+  { value: 'energy', label: 'Energy Law' },
+  { value: 'entertainment', label: 'Entertainment Law' },
+  { value: 'environmental', label: 'Environmental Law' },
+  { value: 'family', label: 'Family Law' },
+  { value: 'general', label: 'General' },
+  { value: 'health_care', label: 'Health Care Law' },
+  { value: 'immigration', label: 'Immigration Law' },
+  { value: 'intellectual_property', label: 'Intellectual Property' },
+  { value: 'insurance', label: 'Insurance Law' },
+  { value: 'juvenile', label: 'Juvenile Law' },
+  { value: 'landlord_tenant', label: 'Landlord/Tenant Law' },
+  { value: 'litigation', label: 'Litigation' },
+  { value: 'maritime', label: 'Maritime Law' },
+  { value: 'medical_malpractice', label: 'Medical Malpractice' },
+  { value: 'military', label: 'Military Law' },
+  { value: 'personal_injury', label: 'Personal Injury' },
+  { value: 'probate', label: 'Probate' },
+  { value: 'product_liability', label: 'Product Liability' },
+  { value: 'real_estate', label: 'Real Estate Law' },
+  { value: 'securities', label: 'Securities Law' },
+  { value: 'sports', label: 'Sports Law' },
+  { value: 'tax', label: 'Tax Law' },
+  { value: 'trusts_and_estates', label: 'Trusts and Estates' },
+  { value: 'white_collar_crime', label: 'White Collar Crime' },
+  { value: 'workers_compensation', label: "Workers' Compensation" },
+  { value: 'zoning', label: 'Zoning Law' },
+];
 
 const deadlineTypes = [
   { value: 'statement_of_defence', label: 'Statement of Defence' },
@@ -68,6 +114,48 @@ const deadlineTypes = [
 
 export default function LegalToolsPage() {
   const { toast } = useToast()
+
+  // --- Fee Structure Recommendation State ---
+  const [feeStructureRequest, setFeeStructureRequest] = useState<{ description: string; practice_area: string }>({ description: '', practice_area: '' }) 
+  const [feeStructureRecommendation, setFeeStructureRecommendation] = useState<string | null>(null)
+  const recommendFeeStructureMutation = useMutation({
+    mutationFn: recommendFeeStructure,
+    onSuccess: (data: any) => {
+      setFeeStructureRecommendation(data?.recommendation || data)
+      toast({ title: 'Recommendation Ready', description: 'A recommended fee structure is available.' })
+    },
+    onError: (err: any) => toast({ title: 'Error', description: err.message, variant: 'destructive' }),
+  })
+
+  // --- Case Brief State ---
+  const [caseCitation, setCaseCitation] = useState('')
+  const [caseBrief, setCaseBrief] = useState<any>(null)
+  const getCaseBriefMutation = useMutation({
+    mutationFn: getCaseBrief,
+    onSuccess: (data) => setCaseBrief(data),
+    onError: (err: any) => toast({ title: 'Error', description: err.message, variant: 'destructive' }),
+  })
+
+  // --- Fixed Fee Estimate State ---
+  const [feeRequest, setFeeRequest] = useState<any>({ matter: '', jurisdiction: '', practice_area: '' })
+  const [fixedFeeEstimate, setFixedFeeEstimate] = useState<any>(null)
+  const fixedFeeMutation = useMutation({
+    mutationFn: calculateFixedFeeEstimate,
+    onSuccess: (data) => setFixedFeeEstimate(data),
+    onError: (err: any) => toast({ title: 'Error', description: err.message, variant: 'destructive' }),
+  })
+
+  // --- Court Document Validation State ---
+  const [docText, setDocText] = useState('')
+  const [docType, setDocType] = useState('')
+  const [docJurisdiction, setDocJurisdiction] = useState('')
+  const [validationResult, setValidationResult] = useState<any>(null)
+  const validateDocMutation = useMutation({
+    mutationFn: (data: any) => validateCourtDocument({ document_type: data.docType, jurisdiction: data.docJurisdiction, document_text: data.docText }),
+    onSuccess: (data) => setValidationResult(data),
+    onError: (err: any) => toast({ title: 'Error', description: err.message, variant: 'destructive' }),
+  })
+
   
   // Deadline Calculator State
   const [deadlineRequest, setDeadlineRequest] = useState<CalculateDeadlineRequest>({
@@ -277,22 +365,183 @@ Jurisdiction: ${jurisdiction}`
       >
         <h1 className="text-3xl font-bold mb-2">Canadian Legal Tools</h1>
         <p className="text-muted-foreground mb-6">
-          Essential tools for Canadian legal practice at Pathways Law
+          Essential tools for Canadian legal practice
         </p>
       </motion.div>
       
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="mb-4 flex flex-wrap">
-          <TabsTrigger value="deadline-calculator">Deadline Calculator</TabsTrigger>
-          <TabsTrigger value="legal-analysis">Legal Issue Analysis</TabsTrigger>
-          <TabsTrigger value="legal-research">Legal Research</TabsTrigger>
-          <TabsTrigger value="citation-formatter">Citation Formatter</TabsTrigger>
-          <TabsTrigger value="document-comparison">Document Comparison</TabsTrigger>
-          <TabsTrigger value="fee-calculator">Fee Calculator</TabsTrigger>
-          <TabsTrigger value="court-filing">Court Filing</TabsTrigger>
-        </TabsList>
+        <div className="mb-4 flex flex-wrap gap-2">
+  {/* Deadlines & Filing */}
+  <DropdownMenu>
+    <DropdownMenuTrigger asChild>
+      <Button variant={['deadline-calculator','court-filing','court-document-validation'].includes(activeTab) ? 'default' : 'outline'}>
+        <Calendar className="mr-2 h-4 w-4" /> Deadlines & Filing
+      </Button>
+    </DropdownMenuTrigger>
+    <DropdownMenuContent align="start">
+      <DropdownMenuItem onClick={() => setActiveTab('deadline-calculator')}>
+        {activeTab === 'deadline-calculator' && <Check className="mr-2 h-4 w-4 text-primary" />} Deadline Calculator
+      </DropdownMenuItem>
+      <DropdownMenuItem onClick={() => setActiveTab('court-filing')}>
+        {activeTab === 'court-filing' && <Check className="mr-2 h-4 w-4 text-primary" />} Court Filing
+      </DropdownMenuItem>
+      <DropdownMenuItem onClick={() => setActiveTab('court-document-validation')}>
+        {activeTab === 'court-document-validation' && <Check className="mr-2 h-4 w-4 text-primary" />} Court Document Validation
+      </DropdownMenuItem>
+    </DropdownMenuContent>
+  </DropdownMenu>
+  {/* Legal Analysis */}
+  <DropdownMenu>
+    <DropdownMenuTrigger asChild>
+      <Button variant={['legal-analysis','legal-research','case-brief'].includes(activeTab) ? 'default' : 'outline'}>
+        <BookOpen className="mr-2 h-4 w-4" /> Legal Analysis
+      </Button>
+    </DropdownMenuTrigger>
+    <DropdownMenuContent align="start">
+      <DropdownMenuItem onClick={() => setActiveTab('legal-analysis')}>
+        {activeTab === 'legal-analysis' && <Check className="mr-2 h-4 w-4 text-primary" />} Legal Issue Analysis
+      </DropdownMenuItem>
+      <DropdownMenuItem onClick={() => setActiveTab('legal-research')}>
+        {activeTab === 'legal-research' && <Check className="mr-2 h-4 w-4 text-primary" />} Legal Research
+      </DropdownMenuItem>
+      <DropdownMenuItem onClick={() => setActiveTab('case-brief')}>
+        {activeTab === 'case-brief' && <Check className="mr-2 h-4 w-4 text-primary" />} Case Brief
+      </DropdownMenuItem>
+    </DropdownMenuContent>
+  </DropdownMenu>
+  {/* Drafting & Formatting */}
+  <DropdownMenu>
+    <DropdownMenuTrigger asChild>
+      <Button variant={['citation-formatter','document-comparison'].includes(activeTab) ? 'default' : 'outline'}>
+        <FileText className="mr-2 h-4 w-4" /> Drafting & Formatting
+      </Button>
+    </DropdownMenuTrigger>
+    <DropdownMenuContent align="start">
+      <DropdownMenuItem onClick={() => setActiveTab('citation-formatter')}>
+        {activeTab === 'citation-formatter' && <Check className="mr-2 h-4 w-4 text-primary" />} Citation Formatter
+      </DropdownMenuItem>
+      <DropdownMenuItem onClick={() => setActiveTab('document-comparison')}>
+        {activeTab === 'document-comparison' && <Check className="mr-2 h-4 w-4 text-primary" />} Document Comparison
+      </DropdownMenuItem>
+    </DropdownMenuContent>
+  </DropdownMenu>
+  {/* Fees & Estimates */}
+  <DropdownMenu>
+    <DropdownMenuTrigger asChild>
+      <Button variant={['fee-calculator','fixed-fee-estimate'].includes(activeTab) ? 'default' : 'outline'}>
+        <DollarSign className="mr-2 h-4 w-4" /> Fees & Estimates
+      </Button>
+    </DropdownMenuTrigger>
+    <DropdownMenuContent align="start">
+      <DropdownMenuItem onClick={() => setActiveTab('fee-calculator')}>
+        {activeTab === 'fee-calculator' && <Check className="mr-2 h-4 w-4 text-primary" />} Fee Calculator
+      </DropdownMenuItem>
+      <DropdownMenuItem onClick={() => setActiveTab('fixed-fee-estimate')}>
+        {activeTab === 'fixed-fee-estimate' && <Check className="mr-2 h-4 w-4 text-primary" />} Fixed Fee Estimate
+      </DropdownMenuItem>
+      <DropdownMenuItem onClick={() => setActiveTab('fee-structure-recommendation')}>
+        {activeTab === 'fee-structure-recommendation' && <Check className="mr-2 h-4 w-4 text-primary" />} Fee Structure Recommendation
+      </DropdownMenuItem>
+    </DropdownMenuContent>
+  </DropdownMenu>
+  {/* Future Tools */}
+  <DropdownMenu>
+    <DropdownMenuTrigger asChild>
+      <Button variant="outline">
+        <Sparkles className="mr-2 h-4 w-4" /> Future Tools
+      </Button>
+    </DropdownMenuTrigger>
+    <DropdownMenuContent align="start">
+      <DropdownMenuItem disabled>
+        Coming Soon: AI Discovery Assistant
+      </DropdownMenuItem>
+      <DropdownMenuItem disabled>
+        Coming Soon: Contract Clause Generator
+      </DropdownMenuItem>
+      <DropdownMenuItem disabled>
+        Coming Soon: Litigation Strategy
+      </DropdownMenuItem>
+    </DropdownMenuContent>
+  </DropdownMenu>
+</div>
         
+        <TabsContent value="fee-structure-recommendation">
+          <AIProcessingOverlay
+            isProcessing={recommendFeeStructureMutation.isPending}
+            theme="legal"
+            title="Recommending Fee Structure"
+            message="Our AI is analyzing your case details to recommend the best fee structure..."
+            modelName="Noesis AI"
+          >
+            <Card className="max-w-xl mx-auto">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <DollarSign className="h-5 w-5 text-primary" />
+                  Fee Structure Recommendation
+                </CardTitle>
+                <CardDescription>
+                  Get an AI-powered recommendation for the most suitable fee structure for your case.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <form
+                  onSubmit={e => {
+                    e.preventDefault();
+                    recommendFeeStructureMutation.mutate({
+                      matter_type: feeStructureRequest.practice_area,
+                      matter_details: { description: feeStructureRequest.description }
+                    });
+                  }}
+                  className="space-y-4"
+                >
+                  <div>
+                    <Label htmlFor="fee-structure-description">Describe the case or matter</Label>
+                    <Textarea
+                      id="fee-structure-description"
+                      value={feeStructureRequest.description}
+                      onChange={e => setFeeStructureRequest(prev => ({ ...prev, description: e.target.value }))}
+                      placeholder="e.g., Divorce case with moderate complexity, client prefers predictable costs"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="fee-structure-practice-area">Practice Area</Label>
+                    <Input
+                      id="fee-structure-practice-area"
+                      value={feeStructureRequest.practice_area}
+                      onChange={e => setFeeStructureRequest(prev => ({ ...prev, practice_area: e.target.value }))}
+                      placeholder="e.g., Family Law, Civil Litigation, Real Estate"
+                      required
+                    />
+                  </div>
+                  <Button type="submit" disabled={recommendFeeStructureMutation.isPending}>
+                    {recommendFeeStructureMutation.isPending ? (
+                      <span className="flex items-center gap-2"><Loader2 className="animate-spin h-4 w-4" /> Recommending...</span>
+                    ) : (
+                      'Get Recommendation'
+                    )}
+                  </Button>
+                </form>
+                {feeStructureRecommendation && (
+                  <div className="mt-4 p-4 bg-muted rounded">
+                    <Label>Recommended Fee Structure:</Label>
+                    <ReactMarkdown className="prose prose-sm mt-2">
+                      {feeStructureRecommendation}
+                    </ReactMarkdown>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </AIProcessingOverlay>
+        </TabsContent>
         <TabsContent value="deadline-calculator">
+            <AIProcessingOverlay
+              isProcessing={calculateDeadlineMutation.isPending}
+              theme="legal"
+              title="Calculating Deadline"
+              message="Our AI is calculating your legal deadline..."
+              modelName="Noesis AI"
+            >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
@@ -415,9 +664,17 @@ Jurisdiction: ${jurisdiction}`
               </Card>
             )}
           </div>
-        </TabsContent>
+        </AIProcessingOverlay>
+          </TabsContent>
         
         <TabsContent value="legal-analysis">
+            <AIProcessingOverlay
+              isProcessing={analyzeLegalIssueMutation.isPending}
+              theme="legal"
+              title="Analyzing Legal Issue"
+              message="Our AI is analyzing your legal issue..."
+              modelName="Noesis AI"
+            >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
@@ -543,9 +800,17 @@ Jurisdiction: ${jurisdiction}`
               </Card>
             )}
           </div>
-        </TabsContent>
+        </AIProcessingOverlay>
+          </TabsContent>
         
         <TabsContent value="legal-research">
+            <AIProcessingOverlay
+              isProcessing={legalResearchResults?.loading}
+              theme="research"
+              title="Researching Legal Query"
+              message="Our AI is researching your query..."
+              modelName="Noesis AI"
+            >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
@@ -699,9 +964,17 @@ Jurisdiction: ${jurisdiction}`
               </Card>
             )}
           </div>
-        </TabsContent>
+        </AIProcessingOverlay>
+          </TabsContent>
         
         <TabsContent value="citation-formatter">
+            <AIProcessingOverlay
+              isProcessing={parsedCitation?.loading}
+              theme="legal"
+              title="Formatting Citation"
+              message="Our AI is formatting your citation..."
+              modelName="Noesis AI"
+            >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
@@ -983,9 +1256,17 @@ Jurisdiction: ${jurisdiction}`
               </Card>
             )}
           </div>
-        </TabsContent>
+        </AIProcessingOverlay>
+          </TabsContent>
         
         <TabsContent value="document-comparison">
+            <AIProcessingOverlay
+              isProcessing={comparisonResult?.loading}
+              theme="analysis"
+              title="Comparing Documents"
+              message="Our AI is comparing your documents..."
+              modelName="Noesis AI"
+            >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
@@ -1188,9 +1469,17 @@ Jurisdiction: ${jurisdiction}`
               </Card>
             )}
           </div>
-        </TabsContent>
+        </AIProcessingOverlay>
+          </TabsContent>
         
         <TabsContent value="fee-calculator">
+            <AIProcessingOverlay
+              isProcessing={feeEstimate?.loading}
+              theme="legal"
+              title="Calculating Legal Fees"
+              message="Our AI is estimating your legal fees..."
+              modelName="Noesis AI"
+            >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
@@ -1444,9 +1733,17 @@ Jurisdiction: ${jurisdiction}`
               </Card>
             )}
           </div>
-        </TabsContent>
+        </AIProcessingOverlay>
+          </TabsContent>
         
         <TabsContent value="court-filing">
+            <AIProcessingOverlay
+              isProcessing={filingChecklist?.loading}
+              theme="legal"
+              title="Preparing Court Filing"
+              message="Our AI is preparing your court filing checklist..."
+              modelName="Noesis AI"
+            >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
@@ -1777,8 +2074,159 @@ Please visit the official court website for complete and up-to-date forms.`,
               </Card>
             )}
           </div>
-        </TabsContent>
-      </Tabs>
-    </div>
-  )
-}
+        </AIProcessingOverlay>
+          </TabsContent>
+      {/* --- Case Brief Tab --- */}
+      <TabsContent value="case-brief">
+        <AIProcessingOverlay
+          isProcessing={getCaseBriefMutation.isPending}
+          theme="research"
+          title="Fetching Case Brief"
+          message="Noesis AI is retrieving the case summary..."
+        >
+          <Card className="max-w-xl mx-auto mt-6">
+            <CardHeader>
+              <CardTitle>Get Case Brief</CardTitle>
+              <CardDescription>Enter a case citation to retrieve an AI-generated case summary.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form
+                onSubmit={e => {
+                  e.preventDefault();
+                  getCaseBriefMutation.mutate(caseCitation);
+                }}
+                className="space-y-4"
+              >
+                <Label htmlFor="caseCitation">Case Citation</Label>
+                <Input id="caseCitation" value={caseCitation} onChange={e => setCaseCitation(e.target.value)} placeholder="e.g., R v Smith, 2020 SCC 1" />
+                <Button type="submit" disabled={getCaseBriefMutation.isPending || !caseCitation}>Get Case Brief</Button>
+              </form>
+              {caseBrief && (
+                <div className="prose prose-sm max-w-none dark:prose-invert mt-6 border rounded-md p-4 bg-muted/20">
+                  <ReactMarkdown>{caseBrief.summary || caseBrief.brief}</ReactMarkdown>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </AIProcessingOverlay>
+      </TabsContent>
+
+      {/* --- Fixed Fee Estimate Tab --- */}
+      <TabsContent value="fixed-fee-estimate">
+        <AIProcessingOverlay
+          isProcessing={fixedFeeMutation.isPending}
+          theme="legal"
+          title="Calculating Fixed Fee Estimate"
+          message="Noesis AI is estimating the fixed legal fee..."
+        >
+          <Card className="max-w-xl mx-auto mt-6">
+            <CardHeader>
+              <CardTitle>Fixed Fee Estimate</CardTitle>
+              <CardDescription>Provide details to estimate a fixed legal fee.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form
+                onSubmit={e => {
+                  e.preventDefault();
+                  fixedFeeMutation.mutate(feeRequest);
+                }}
+                className="space-y-4"
+              >
+                <Label htmlFor="feeMatter">Matter Description</Label>
+                <Input id="feeMatter" value={feeRequest.matter || ''} onChange={e => setFeeRequest(f => ({ ...f, matter: e.target.value }))} placeholder="Describe the legal matter" />
+                <Label htmlFor="feeJurisdiction">Jurisdiction</Label>
+                <Select value={feeRequest.jurisdiction || ''} onValueChange={val => setFeeRequest(f => ({ ...f, jurisdiction: val }))}>
+                  <SelectTrigger id="feeJurisdiction">
+                    <SelectValue placeholder="Select jurisdiction" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {jurisdictions.map(j => (
+                      <SelectItem key={j.value} value={j.value}>{j.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Label htmlFor="feePracticeArea">Practice Area</Label>
+                <Select value={feeRequest.practice_area || ''} onValueChange={val => setFeeRequest(f => ({ ...f, practice_area: val }))}>
+                  <SelectTrigger id="feePracticeArea">
+                    <SelectValue placeholder="Select practice area" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {practiceAreas.map(pa => (
+                      <SelectItem key={pa.value} value={pa.value}>{pa.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button type="submit" disabled={fixedFeeMutation.isPending || !feeRequest.matter || !feeRequest.jurisdiction || !feeRequest.practice_area}>Estimate Fixed Fee</Button>
+              </form>
+              {fixedFeeEstimate && (
+                <div className="mt-6 border rounded-md p-4 bg-muted/20">
+                  <div className="font-semibold">Estimated Fixed Fee:</div>
+                  <div className="text-2xl mt-2">{fixedFeeEstimate.amount ? `$${fixedFeeEstimate.amount}` : 'N/A'}</div>
+                  {fixedFeeEstimate.notes && <div className="mt-2 text-sm text-muted-foreground">{fixedFeeEstimate.notes}</div>}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </AIProcessingOverlay>
+      </TabsContent>
+
+      {/* --- Court Document Validation Tab --- */}
+      <TabsContent value="court-document-validation">
+        <AIProcessingOverlay
+          isProcessing={validateDocMutation.isPending}
+          theme="legal"
+          title="Validating Court Document"
+          message="Noesis AI is validating your court document..."
+        >
+          <Card className="max-w-xl mx-auto mt-6">
+            <CardHeader>
+              <CardTitle>Court Document Validation</CardTitle>
+              <CardDescription>Paste your court document text to validate compliance and structure.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form
+                onSubmit={e => {
+                  e.preventDefault();
+                  validateDocMutation.mutate({ document_text: docText, document_type: docType, jurisdiction: docJurisdiction });
+                }}
+                className="space-y-4"
+              >
+                <Label htmlFor="courtDoc">Court Document Text</Label>
+                <Textarea id="courtDoc" value={docText} onChange={e => setDocText(e.target.value)} placeholder="Paste court document text here..." rows={8} />
+                <Label htmlFor="courtDocType">Document Type</Label>
+                <Input id="courtDocType" value={docType} onChange={e => setDocType(e.target.value)} placeholder="e.g., Statement of Claim" />
+                <Label htmlFor="courtDocJurisdiction">Jurisdiction</Label>
+                <Select value={docJurisdiction} onValueChange={val => setDocJurisdiction(val)}>
+                  <SelectTrigger id="courtDocJurisdiction">
+                    <SelectValue placeholder="Select jurisdiction" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {jurisdictions.map(j => (
+                      <SelectItem key={j.value} value={j.value}>{j.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button type="submit" disabled={validateDocMutation.isPending || !docText || !docType || !docJurisdiction}>Validate Document</Button>
+              </form>
+              {validationResult && (
+                <div className="mt-6 border rounded-md p-4 bg-muted/20">
+                  <div className="font-semibold">Validation Result:</div>
+                  <div className="mt-2">
+                    <ReactMarkdown>{validationResult.result || validationResult.status}</ReactMarkdown>
+                  </div>
+                  {validationResult.issues && validationResult.issues.length > 0 && (
+                    <ul className="mt-2 text-sm text-destructive list-disc list-inside">
+                      {validationResult.issues.map((issue: string, idx: number) => (
+                        <li key={idx}>{issue}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </AIProcessingOverlay>
+      </TabsContent>
+    </Tabs>
+  </div>
+)}

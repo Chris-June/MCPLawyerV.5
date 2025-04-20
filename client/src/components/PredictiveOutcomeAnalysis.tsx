@@ -9,7 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '../components/ui/form'
-import { Input } from '../components/ui/input'
+
 import { Textarea } from '../components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select'
 import { Alert, AlertTitle, AlertDescription } from '../components/ui/alert'
@@ -19,7 +19,7 @@ import { useToast } from '../components/ui/use-toast'
 import { AIProcessingOverlay } from '../components/ui/ai-processing-overlay'
 
 // Import directly from the predictiveAnalysisApi file instead of the index
-import { predictOutcome, PredictiveAnalysisFormData, PredictiveAnalysisRequest as ApiRequest } from '../lib/api/predictiveAnalysisApi'
+import { predictOutcome, PredictiveAnalysisFormData, PredictiveAnalysisRequest as ApiRequest, PredictiveAnalysisResult as ApiResult } from '../lib/api/predictiveAnalysisApi'
 
 // Form schema
 const predictiveAnalysisSchema = z.object({
@@ -29,7 +29,7 @@ const predictiveAnalysisSchema = z.object({
   jurisdiction: z.string({
     required_error: 'Please select a jurisdiction',
   }),
-  facts_summary: z.string().min(50, {
+  case_facts: z.string().min(50, {
     message: 'Case facts must be at least 50 characters',
   }),
   legal_issues: z.string().min(20, {
@@ -45,33 +45,51 @@ const predictiveAnalysisSchema = z.object({
 // Define our form data type using Zod inference
 type FormData = z.infer<typeof predictiveAnalysisSchema>
 
-type PredictiveAnalysisResult = {
-  case_summary: string
-  outcome_prediction: {
-    prediction: string
-    confidence: number
-    prediction_rationale: string
-  }
-  key_factors: string[]
-  strategy_recommendations: string[]
-  risk_assessment: {
-    level: 'low' | 'medium' | 'high'
-    description: string
-  }
-}
-
 const caseTypes = [
-  { value: 'civil_litigation', label: 'Civil Litigation' },
-  { value: 'family_law', label: 'Family Law' },
-  { value: 'criminal_defense', label: 'Criminal Defense' },
-  { value: 'corporate', label: 'Corporate Law' },
-  { value: 'intellectual_property', label: 'Intellectual Property' },
-  { value: 'real_estate', label: 'Real Estate' },
-  { value: 'employment', label: 'Employment Law' },
-  { value: 'immigration', label: 'Immigration Law' },
-  { value: 'tax', label: 'Tax Law' },
   { value: 'administrative', label: 'Administrative Law' },
-]
+  { value: 'admiralty', label: 'Admiralty Law' },
+  { value: 'alternative_dispute_resolution', label: 'Alternative Dispute Resolution' },
+  { value: 'antitrust', label: 'Antitrust' },
+  { value: 'appellate', label: 'Appellate' },
+  { value: 'bankruptcy', label: 'Bankruptcy' },
+  { value: 'civil_litigation', label: 'Civil Litigation' },
+  { value: 'civil_rights', label: 'Civil Rights' },
+  { value: 'commercial', label: 'Commercial Law' },
+  { value: 'constitutional', label: 'Constitutional Law' },
+  { value: 'construction', label: 'Construction Law' },
+  { value: 'consumer_protection', label: 'Consumer Protection' },
+  { value: 'contract', label: 'Contract Law' },
+  { value: 'corporate', label: 'Corporate Law' },
+  { value: 'criminal_defense', label: 'Criminal Defense' },
+  { value: 'education', label: 'Education Law' },
+  { value: 'employment', label: 'Employment Law' },
+  { value: 'energy', label: 'Energy Law' },
+  { value: 'entertainment', label: 'Entertainment Law' },
+  { value: 'environmental', label: 'Environmental Law' },
+  { value: 'estate_planning', label: 'Estate Planning' },
+  { value: 'family_law', label: 'Family Law' },
+  { value: 'health_care', label: 'Health Care Law' },
+  { value: 'immigration', label: 'Immigration Law' },
+  { value: 'intellectual_property', label: 'Intellectual Property' },
+  { value: 'insurance', label: 'Insurance Law' },
+  { value: 'juvenile', label: 'Juvenile Law' },
+  { value: 'landlord_tenant', label: 'Landlord/Tenant' },
+  { value: 'maritime', label: 'Maritime Law' },
+  { value: 'medical_malpractice', label: 'Medical Malpractice' },
+  { value: 'military', label: 'Military Law' },
+  { value: 'personal_injury', label: 'Personal Injury' },
+  { value: 'probate', label: 'Probate' },
+  { value: 'product_liability', label: 'Product Liability' },
+  { value: 'real_estate', label: 'Real Estate' },
+  { value: 'securities', label: 'Securities' },
+  { value: 'sports', label: 'Sports Law' },
+  { value: 'tax', label: 'Tax Law' },
+  { value: 'transportation', label: 'Transportation Law' },
+  { value: 'trusts_and_estates', label: 'Trusts and Estates' },
+  { value: 'white_collar_crime', label: 'White Collar Crime' },
+  { value: 'workers_compensation', label: "Workers' Compensation" },
+  { value: 'zoning', label: 'Zoning Law' },
+];
 
 const jurisdictions = [
   { value: 'federal', label: 'Federal' },
@@ -92,7 +110,10 @@ const jurisdictions = [
 
 const PredictiveOutcomeAnalysis: React.FC = () => {
   const { toast } = useToast()
-  const [analysisResult, setAnalysisResult] = useState<PredictiveAnalysisResult | null>(null)
+  const [analysisResult, setAnalysisResult] = useState<ApiResult | null>(null)
+
+  // DEBUG: Log analysis result
+  console.log('analysisResult', analysisResult);
 
   // Form setup
   const form = useForm<FormData>({
@@ -100,7 +121,7 @@ const PredictiveOutcomeAnalysis: React.FC = () => {
     defaultValues: {
       case_type: '',
       jurisdiction: '',
-      facts_summary: '',
+      case_facts: '',
       legal_issues: '',
       client_position: '',
       opposing_position: '',
@@ -109,22 +130,30 @@ const PredictiveOutcomeAnalysis: React.FC = () => {
   })
 
   // Mutation for API call
-  const mutation = useMutation({
+  const mutation = useMutation<ApiResult, Error, FormData>({
     mutationFn: (data: FormData) => {
       // Convert form data to API request format
       // This ensures all required fields are present with proper defaults for optional fields
       const apiRequest: ApiRequest = {
-        case_type: data.case_type,
+        case_facts: data.case_facts,
+        legal_issues: data.legal_issues
+          .split(/[\r\n,]+/)
+          .map((s) => s.trim())
+          .filter(Boolean),
         jurisdiction: data.jurisdiction,
-        facts_summary: data.facts_summary,
-        legal_issues: data.legal_issues,
+        opposing_arguments: data.opposing_position?.trim() || undefined,
+        relevant_statutes: data.relevant_precedents
+          ? data.relevant_precedents
+              .split(/[\r\n,]+/)
+              .map((s) => s.trim())
+              .filter(Boolean)
+          : undefined,
+        similar_cases: [],
         client_position: data.client_position,
-        opposing_position: data.opposing_position || '',
-        relevant_precedents: data.relevant_precedents || ''
       }
       return predictOutcome(apiRequest)
     },
-    onSuccess: (data: PredictiveAnalysisResult) => {
+    onSuccess: (data: ApiResult) => {
       setAnalysisResult(data)
       toast({
         title: 'Analysis Complete',
@@ -191,7 +220,8 @@ const PredictiveOutcomeAnalysis: React.FC = () => {
           </Card>
         </motion.div>
 
-        <motion.div
+        {/*
+<motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
@@ -206,9 +236,11 @@ const PredictiveOutcomeAnalysis: React.FC = () => {
             <CardContent className="space-y-4">
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="text-lg px-3 py-1">
-                  {analysisResult.outcome_prediction.confidence}% Confidence
+                  {analysisResult.outcome_prediction.prediction}
                 </Badge>
-                <span className="font-semibold text-lg">{analysisResult.outcome_prediction.prediction}</span>
+                <Badge variant="outline" className="text-lg px-3 py-1 ml-2">
+                  {analysisResult.outcome_prediction.confidence} Confidence
+                </Badge>
               </div>
               <Separator />
               <div>
@@ -220,8 +252,10 @@ const PredictiveOutcomeAnalysis: React.FC = () => {
             </CardContent>
           </Card>
         </motion.div>
+*/}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/*
+<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -236,7 +270,7 @@ const PredictiveOutcomeAnalysis: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2">
-                  {analysisResult.key_factors.map((factor, index) => (
+                  {(analysisResult?.key_factors ?? []).map((factor, index) => (
                     <li key={index} className="flex items-start gap-2">
                       <span className="text-primary mt-1">•</span>
                       <span>{factor}</span>
@@ -259,21 +293,14 @@ const PredictiveOutcomeAnalysis: React.FC = () => {
                   <CardTitle>Risk Assessment</CardTitle>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Badge 
-                    variant={analysisResult.risk_assessment.level === 'high' ? 'destructive' : 
-                           analysisResult.risk_assessment.level === 'medium' ? 'default' : 'outline'}
-                    className="mb-2"
-                  >
-                    {analysisResult.risk_assessment.level.toUpperCase()} RISK
-                  </Badge>
-                  <p className="text-muted-foreground">{analysisResult.risk_assessment.description}</p>
-                </div>
+              <CardContent>
+                <p><strong>Level:</strong> {analysisResult.risk_assessment?.level ?? <em>Not available</em>}</p>
+                <p>{analysisResult.risk_assessment?.description ?? <em>No description</em>}</p>
               </CardContent>
             </Card>
           </motion.div>
         </div>
+*/}
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -281,22 +308,24 @@ const PredictiveOutcomeAnalysis: React.FC = () => {
           transition={{ duration: 0.5, delay: 0.4 }}
         >
           <Card>
+{/*
             <CardHeader>
               <div className="flex items-center gap-2">
                 <CheckCircle className="h-5 w-5 text-primary" />
-                <CardTitle>Strategy Recommendations</CardTitle>
+                <CardTitle>Recommended Strategies</CardTitle>
               </div>
             </CardHeader>
             <CardContent>
               <ul className="space-y-2">
-                {analysisResult.strategy_recommendations.map((strategy, index) => (
-                  <li key={index} className="flex items-start gap-2">
+                {(analysisResult.strategy_recommendations ?? []).map((rec, idx) => (
+                  <li key={idx} className="flex items-start gap-2">
                     <span className="text-primary mt-1">•</span>
-                    <span>{strategy}</span>
+                    <span>{rec}</span>
                   </li>
                 ))}
               </ul>
             </CardContent>
+*/}
             <CardFooter>
               <Button variant="outline" onClick={handleReset} className="w-full">
                 Start New Analysis
@@ -392,7 +421,7 @@ const PredictiveOutcomeAnalysis: React.FC = () => {
 
                 <FormField
                   control={form.control}
-                  name="facts_summary"
+                  name="case_facts"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Case Facts Summary</FormLabel>

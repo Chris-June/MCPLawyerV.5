@@ -213,17 +213,60 @@ IMPORTANT: Ensure your response is comprehensive, well-structured, and provides 
             print(f"Alternative Outcomes: {bool(alternative_outcomes)}")
             print("--- End of Sections Debugging ---\n")
             
-            # Create structured response
+            # --- New Structured Extraction ---
+            import re
+            def extract_predicted_outcome(text):
+                match = re.search(r"\*\*Predicted outcome:?\*\*\s*(.+?)(?:\n|$)", text)
+                return match.group(1).strip() if match else ""
+            def extract_probability(text):
+                match = re.search(r"\*\*Probability of favorable outcome:?\*\*\s*([\d.]+%)", text)
+                return match.group(1).strip() if match else ""
+            def extract_confidence(text):
+                match = re.search(r"\*\*Confidence level:?\*\*\s*(\w+)", text)
+                return match.group(1).strip() if match else ""
+            def extract_rationale(text):
+                match = re.search(r"\*\*Rationale:?\*\*\s*(.+?)(?=\n---|\Z)", text, re.DOTALL)
+                return match.group(1).strip() if match else ""
+            def extract_key_factors(text):
+                match = re.search(r"### Key Factors\s*([\s\S]+?)(?=\n---|\Z)", text)
+                if match:
+                    lines = [l.strip('-• ').strip() for l in match.group(1).split('\n') if l.strip('-• ').strip()]
+                    return [l for l in lines if l]
+                return []
+            def extract_risk_assessment(text):
+                match_level = re.search(r"Level:?\s*([A-Za-z]+)", text)
+                match_desc = re.search(r"No description|Description:?\s*(.+?)(?=\n|$)", text)
+                return {
+                    "level": match_level.group(1).strip() if match_level else "Not available",
+                    "description": match_desc.group(1).strip() if match_desc and match_desc.group(1) else "No description"
+                }
+            def extract_strategies(text):
+                match = re.search(r"### Recommended Legal Strategies\s*([\s\S]+?)(?=\n---|\Z)", text)
+                if match:
+                    # Split on numbered list
+                    items = re.split(r"\n\s*\d+\. ", "\n"+match.group(1))
+                    return [i.strip().replace('\n', ' ') for i in items if i.strip()]
+                return []
+
+            outcome_section = self._extract_section(analysis_text, "Outcome Prediction", "Similar Precedents")
+            risk_section = self._extract_section(analysis_text, "Risk Assessment", "Recommended Legal Strategies")
+            key_factors = extract_key_factors(analysis_text)
+            risk_assessment = extract_risk_assessment(risk_section or analysis_text)
+            strategies = extract_strategies(analysis_text)
+
             return {
                 "case_summary": case_summary.strip(),
                 "outcome_prediction": {
-                    "favorable_percentage": favorable_outcome_percentage,
-                    "confidence_level": confidence_level,
-                    "rationale": prediction_rationale.strip()
+                    "prediction": extract_predicted_outcome(outcome_section),
+                    "probability": extract_probability(outcome_section),
+                    "confidence": extract_confidence(outcome_section),
+                    "prediction_rationale": extract_rationale(outcome_section)
                 },
+                "key_factors": key_factors,
+                "risk_assessment": risk_assessment,
+                "strategy_recommendations": strategies,
                 "similar_precedents": similar_precedents.strip(),
                 "swot_analysis": swot_analysis.strip(),
-                "recommended_strategies": recommended_strategies.strip(),
                 "alternative_outcomes": alternative_outcomes.strip(),
                 "disclaimer": "This predictive analysis is AI-generated and should not be considered legal advice. Consult with a qualified legal professional for specific legal guidance."
             }

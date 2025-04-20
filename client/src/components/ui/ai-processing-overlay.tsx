@@ -62,7 +62,7 @@ interface AIProcessingOverlayProps {
   /**
    * Optional model name to display
    */
-  modelName?: string
+  modelName?: string // Always shows 'Noesis AI' if not provided
   
   /**
    * Optional estimated time remaining in seconds
@@ -160,7 +160,7 @@ export const AIProcessingOverlay: React.FC<React.PropsWithChildren<AIProcessingO
   pulseEffect = true,
   blurBackground = true,
   className,
-  modelName,
+  modelName = 'Noesis AI', // Always show 'Noesis AI' regardless of prop value
   estimatedTimeRemaining,
   children
 }) => {
@@ -233,9 +233,9 @@ export const AIProcessingOverlay: React.FC<React.PropsWithChildren<AIProcessingO
                   <div className="relative w-full h-2 bg-muted rounded overflow-hidden">
                     <motion.div
                       className="absolute left-0 top-0 h-2 bg-primary"
-                      style={{ width: '40%' }}
+                      style={{ width: '50%' }}
                       animate={{
-                        x: [ '-50%', '110%' ],
+                        x: [ '-50%', '120%' ],
                       }}
                       transition={{
                         repeat: Infinity,
@@ -276,12 +276,10 @@ export const AIProcessingOverlay: React.FC<React.PropsWithChildren<AIProcessingO
               
               {/* Model info and time estimate */}
               <div className="flex flex-col gap-1 text-xs text-muted-foreground">
-                {modelName && (
-                  <div className="flex items-center justify-center gap-1">
-                    <span>Using model:</span>
-                    <span className="font-medium">{modelName}</span>
-                  </div>
-                )}
+                <div className="flex items-center justify-center gap-1">
+                  <span>Using model:</span>
+                  <span className="font-medium">Noesis AI</span>
+                </div>
                 
                 {estimatedTimeRemaining !== undefined && (
                   <div>

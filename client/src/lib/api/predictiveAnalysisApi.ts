@@ -1,4 +1,3 @@
-
 import { API_BASE_URL } from '../../lib/config';
 
 // Define a type that matches the form data structure
@@ -14,13 +13,13 @@ export interface PredictiveAnalysisFormData {
 
 // Define the strict API request type
 export interface PredictiveAnalysisRequest {
-  case_type: string;
+  case_facts: string;
+  legal_issues: string[];
   jurisdiction: string;
-  facts_summary: string;
-  legal_issues: string;
+  relevant_statutes?: string[];
+  similar_cases?: string[];
   client_position: string;
-  opposing_position: string;
-  relevant_precedents: string;
+  opposing_arguments?: string;
 }
 
 export interface PredictiveAnalysisResult {
@@ -45,7 +44,7 @@ export interface PredictiveAnalysisResult {
  */
 export async function predictOutcome(request: PredictiveAnalysisRequest): Promise<PredictiveAnalysisResult> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/predictive-analysis`, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/legal-tools/predictive-analysis/case-outcome`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
